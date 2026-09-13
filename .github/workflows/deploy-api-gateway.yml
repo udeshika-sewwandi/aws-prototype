@@ -24,7 +24,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::048834124872:role/GitHubActionsApiGatewayRole
-          aws-region: us-east=1
+          aws-region: us-east-1
 
       - name: Validate CloudFormation
         run: |
