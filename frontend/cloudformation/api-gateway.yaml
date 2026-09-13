@@ -28,6 +28,10 @@ Resources:
         AllowMethods:
           - GET
           - OPTIONS
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
         AllowHeaders:
           - Authorization
           - Content-Type
