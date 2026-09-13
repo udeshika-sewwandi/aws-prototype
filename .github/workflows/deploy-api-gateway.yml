@@ -20,14 +20,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Debug OIDC token
-        run: |
-          curl -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | \
-            cut -d '.' -f2 | base64 -d 2>/dev/null | python3 -m json.tool
-        env:
-          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
-          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
+      # - name: Debug OIDC token
+      #   run: |
+      #     curl -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+      #       "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | \
+      #       cut -d '.' -f2 | base64 -d 2>/dev/null | python3 -m json.tool
+      #   env:
+      #     ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
+      #     ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -38,12 +38,12 @@ jobs:
       - name: Validate CloudFormation
         run: |
           aws cloudformation validate-template \
-            --template-body file://cloudformation/api-gateway.yaml
+            --template-body file://frontend/cloudformation/api-gateway.yaml
 
       - name: Deploy API Gateway
         run: |
           aws cloudformation deploy \
-            --template-file cloudformation/api-gateway.yaml \
+            --template-file frontend/cloudformation/api-gateway.yaml \
             --stack-name my-api-gateway-dev \
             --parameter-overrides \
               LambdaFunctionArn=arn:aws:lambda:us-east-1:048834124872:function:prototype-api \
