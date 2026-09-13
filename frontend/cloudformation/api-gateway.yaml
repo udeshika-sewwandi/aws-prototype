@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+
+  LambdaFunctionArn:
+    Type: String
+    Description: ARN of the existing Lambda function
+
+  CognitoUserPoolId:
+    Type: String
+    Description: Cognito User Pool ID
+
+  CognitoAppClientId:
+    Type: String
+    Description: Cognito App Client ID
+
+Resources:
+
+  HttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: prototype-app-api
+      ProtocolType: HTTP
+
+      CorsConfiguration:
+        AllowOrigins:
+          - "http://localhost:5174"
+        AllowMethods:
+          - GET
+          - OPTIONS
+        AllowHeaders:
+          - Authorization
+          - Content-Type
+
+  LambdaIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Ref LambdaFunctionArn
+      PayloadFormatVersion: "2.0"
+
+  CognitoAuthorizer:
+    Type: AWS::ApiGatewayV2::Authorizer
+    Properties:
+      ApiId: !Ref HttpApi
+      AuthorizerType: JWT
+      IdentitySource:
+        - "$request.header.Authorization"
+
+      JwtConfiguration:
+        Audience:
+          - !Ref CognitoAppClientId
+
+        Issuer:
+          !Sub
+            - "https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPoolId}"
+            - UserPoolId: !Ref CognitoUserPoolId
+
+      Name: cognito-authorizer
+
+  HelloRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "GET /hello"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref CognitoAuthorizer
+      Target: !Sub "integrations/${LambdaIntegration}"
+
+  DefaultStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref HttpApi
+      StageName: "$default"
+      AutoDeploy: true
+
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LambdaFunctionArn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub
+        - "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiId}/*/*"
+        - ApiId: !Ref HttpApi
+
+Outputs:
+
+  ApiId:
+    Description: API Gateway HTTP API ID
+    Value: !Ref HttpApi
+
+  ApiUrl:
+    Description: API Gateway URL
+    Value: !GetAtt HttpApi.ApiEndpoint
+
+  HelloEndpoint:
+    Description: Hello endpoint
+    Value: !Sub "${HttpApi.ApiEndpoint}/hello"
