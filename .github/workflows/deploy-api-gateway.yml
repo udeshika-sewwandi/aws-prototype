@@ -37,8 +37,8 @@ jobs:
             --template-file cloudformation/api-gateway.yaml \
             --stack-name my-api-gateway-dev \
             --parameter-overrides \
-              LambdaFunctionArn=arn:aws:lambda:us-east-1::runtime:3f2695d917b249350567df30dd784ee6b9547bbdb635b4c188153c39b5347c8b \
-              CognitoUserPoolId= \
+              LambdaFunctionArn=arn:aws:lambda:us-east-1:048834124872:function:prototype-api \
+              CognitoUserPoolId=us-east-1_VgAKe8nT0 \
               CognitoAppClientId=4lcp7epkr196tgh9d5ml4esrm5 \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
