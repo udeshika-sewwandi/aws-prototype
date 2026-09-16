@@ -40,6 +40,10 @@ jobs:
           aws cloudformation validate-template \
             --template-body file://frontend/cloudformation/api-gateway.yaml
 
+      - name: Validate session
+        run: |
+          aws sts get-caller-identity
+
       - name: Deploy API Gateway
         run: |
           aws cloudformation deploy \
